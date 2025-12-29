@@ -3,11 +3,13 @@ package service
  import (
 	"encoding/json"
 	"net/http"
-	"github.com/2410as/api-1/internal/model"
+	"intern-article-api/internal/model"
+	"intern-article-api/internal/repository"
  )
 
 type ArticleService struct{
 	repo *repository.ArticleRepository
+	externalURL string
 }
 
 
@@ -17,12 +19,21 @@ func (s *ArticleService) CreateArticle(title string, body string) error {
 		Title: title,
 		Body: body,
 	}
+
 	return s.repo.Save(&article)
 }
 
-func (s *ArticleService) ImportExternalArticle(url string) error {
-	articles,err := s.FetchExternalArticles(url)
+func (s *ArticleService) ImportExternalArticle() error {
+	resp, err := http.Get(s.externalURL)
+
 	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+	var articles []model.Article
+
+	if err := json.NewDecoder(resp.Body).Decode(&articles); err != nil {
 		return err
 	}
 
@@ -31,7 +42,7 @@ func (s *ArticleService) ImportExternalArticle(url string) error {
 
 
 
-func (s *ArticleService) GetArticles() ([]model.Article error) {
+func (s *ArticleService) GetArticles() ([]model.Article, error) {
 	articles,err := s.repo.FindAll()
 
 	if err != nil {
@@ -39,4 +50,11 @@ func (s *ArticleService) GetArticles() ([]model.Article error) {
 	}
 
 	return articles,nil
+}
+
+func NewArticleService(repo *repository.ArticleRepository, url string) *ArticleService {
+	return &ArticleService {
+	repo:		 repo,
+	externalURL: url,
+	}
 }

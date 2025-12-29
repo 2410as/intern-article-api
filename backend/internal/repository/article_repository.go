@@ -1,36 +1,34 @@
 package repository
 
 import (
-	"github.com/2410as/api-1/internal/model](http://github.com/2410as/api-1/internal/model)"
-	"gorm.io/driver/sqlite"
+	"intern-article-api/internal/model"
 	"gorm.io/gorm"
 )
 
-type ArtilceRepository struct {
+type ArticleRepository struct {
 	db *gorm.DB
 }
 
-func NewArticleRepository (dbFile string) (*ArticleRepository, error) {
-	db, err := gorm.Open(sqlite.Open (dbfile), &gorm.Config{})
-	if err != nil {
-		return nil, err
-	}
+func NewArticleRepository (db *gorm.DB) *ArticleRepository {
 	db.AutoMigrate(&model.Article{})
-	return &ArticleRepository {db :db}, nil
+	return &ArticleRepository {db :db}
 }
 
-func (r *NewArticleRepository) SaveAll() ([]model.Article) error {
-	return.r.db.Save(&article).Error
+func (r *ArticleRepository) SaveAll(articles []model.Article) error {
+	return r.db.Save(&articles).Error
 }
 
-func (r *ArticleRepository) FindAll() ([]model.Article) error {
-	var article []model.Artile
-	err :=r.db.Find(&articles).Error
-	return article 
+func (r *ArticleRepository) FindAll() ([]model.Article, error) {
+	var articles []model.Article
+	err := r.db.Find(&articles).Error
+	return articles, err
 }
 
 func (r *ArticleRepository) Delete (id int) error {
-	errn:= r.db.delete(&model.Article{}, id).Error
+	err := r.db.Delete(&model.Article{}, id).Error
 	return err
 }
 
+func (r *ArticleRepository) Save(article *model.Article) error {
+	return r.db.Create(article).Error
+}
