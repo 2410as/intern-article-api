@@ -14,9 +14,11 @@ import (
 )
 
 func main () {
+	//.encファイルを確認
 	godotenv.Load()
 	url := os.Getenv("EXTERNAL_API_URL")
 	if url == "" {
+	//中身が空ならその場で停止
     panic("EXTERNAL_API_URL が設定されていません！")
 }
 	
@@ -110,3 +112,23 @@ func main () {
 	http.ListenAndServe(":8080",router)
 
 }
+
+	router.Put("/artiles/{id}", func(w http.ResponseWriter, r *http.Request) {
+		idStr := chi.URLParam(r, "id")
+		var id int
+		fmt.Ssacnf(idStr, "%d", &id)
+		var input struct {
+            Title string `json:"title"`
+            Body  string `json:"body"`
+        }
+        json.NewDecoder(r.Body).Decode(&input)
+
+        // 3. シェフに更新を依頼
+        err := svc.UpdateArticle(id, input.Title, input.Body)
+        if err != nil {
+            http.Error(w, "更新できませんでした", 500)
+            return
+        }
+
+        w.Write([]byte("更新しました"))
+    })

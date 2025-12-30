@@ -33,4 +33,15 @@ func (r *ArticleRepository) Save(article *model.Article) error {
 	return r.db.Save(article).Error
 }
 
+func(r *ArticleRepository) Update(id int, title string, body string) error {
+	article := model.Article(ID: id)
+
+	result := r.db.Model(&article).Updates(model.Article {
+		Title: title,
+		Body: body,
+	})
+
+	return result.Error
+}
+
 

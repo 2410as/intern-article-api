@@ -77,3 +77,7 @@ func (s *ArticleService) TogglePin(id int) error {
     }
     return fmt.Errorf("記事が見つかりません")
 }
+
+func (s *ArticleService) UpdateArticle(id int, title string, body string) error {
+	return s.repo.Update(id, title, body)
+}
