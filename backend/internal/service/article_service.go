@@ -1,6 +1,7 @@
 package service
 
  import (
+	"fmt"
 	"encoding/json"
 	"net/http"
 	"intern-article-api/internal/model"
@@ -57,4 +58,22 @@ func NewArticleService(repo *repository.ArticleRepository, url string) *ArticleS
 	repo:		 repo,
 	externalURL: url,
 	}
+}
+
+func (s *ArticleService) DeleteArticle(id int) error {
+    return s.repo.Delete(id)
+}
+
+func (s *ArticleService) TogglePin(id int) error {
+    // 1. 全記事を持ってきて対象を探す（本当はFindByIDがあると便利ですが、今は既存のrepoを活用します）
+    articles, _ := s.repo.FindAll()
+    for _, art := range articles {
+        if art.ID == id {
+            // 2. 状態を反転させる
+            art.IsPinned = !art.IsPinned
+            // 3. 上書き保存
+            return s.repo.Save(&art)
+        }
+    }
+    return fmt.Errorf("記事が見つかりません")
 }

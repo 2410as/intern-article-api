@@ -31,26 +31,80 @@ func main () {
 
 	router := chi.NewRouter()
 
+	router.Use(func (next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+			if r.Method == "OPTIONS" {
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	})
+
 	router.Get("/articles", func (w http.ResponseWriter, r *http.Request) {
-		articles, err := svc.GetArticles()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(articles)
+
+		articles, _ := svc.GetArticles()
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(articles)
 
 	})
 
 	//外部データ取得
-	router.Post("/articles", func(w http.ResponseWriter, r *http.Request) {
-		err := svc.ImportExternalArticle()
-		if err !=nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+	router.Post("/articles/import", func(w http.ResponseWriter, r *http.Request) {
+
+		err := svc.ImportExternalArticle()	
+		if err != nil {
+			http.Error(w, "保存に失敗しました", http.StatusInternalServerError)
 			return
 		}
-		w.Write([]byte("外部データの取り込みに成功しました"))
+
+		w.Write([]byte("外部データも取り込みに成功しました"))
 	})
+
+	router.Post("/articles", func(w http.ResponseWriter, r *http.Request) {
+    		var input struct {
+			Title string `json:"title"`
+			Body string `json:"body"`
+		}
+
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			return
+		}
+		svc.CreateArticle(input.Title, input.Body)
+		w.Write([]byte("自分の記事を保存しました"))
+	})
+
+	router.Delete("/articles/{id}", func(w http.ResponseWriter, r *http.Request) {
+		idStr := chi.URLParam(r, "id")
+		var id int
+		fmt.Sscanf(idStr, "%d", &id)
+	
+	err := svc.DeleteArticle(id)
+    
+	if err != nil {
+        http.Error(w, "削除に失敗しました", http.StatusInternalServerError)
+        return
+    }
+
+    w.Write([]byte("削除しました"))
+})
+
+	router.Patch("/articles/{id}/pin", func(w http.ResponseWriter, r *http.Request) {
+    idStr := chi.URLParam(r, "id")
+    var id int
+    fmt.Sscanf(idStr, "%d", &id)
+
+    err := svc.TogglePin(id)
+    if err != nil {
+        http.Error(w, "ピン留めの更新に失敗しました", http.StatusInternalServerError)
+        return
+    }
+    w.Write([]byte("ピン留めを更新しました"))
+})
 
 	fmt.Println("Server starting on :8080...")
 	http.ListenAndServe(":8080",router)

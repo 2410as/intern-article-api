@@ -30,5 +30,7 @@ func (r *ArticleRepository) Delete (id int) error {
 }
 
 func (r *ArticleRepository) Save(article *model.Article) error {
-	return r.db.Create(article).Error
+	return r.db.Save(article).Error
 }
+
+
