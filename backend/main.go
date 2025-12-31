@@ -20,7 +20,7 @@ func main () {
 	if url == "" {
 	//中身が空ならその場で停止
     panic("EXTERNAL_API_URL が設定されていません！")
-}
+} 
 	
 	db, err := gorm.Open(sqlite.Open("articles.db"), &gorm.Config{})
 	if err != nil {
@@ -63,7 +63,6 @@ func main () {
 			http.Error(w, "保存に失敗しました", http.StatusInternalServerError)
 			return
 		}
-
 		w.Write([]byte("外部データも取り込みに成功しました"))
 	})
 
@@ -77,6 +76,7 @@ func main () {
 			return
 		}
 		svc.CreateArticle(input.Title, input.Body)
+		w.WriteHeader(http.Status)
 		w.Write([]byte("自分の記事を保存しました"))
 	})
 
@@ -92,7 +92,7 @@ func main () {
         return
     }
 
-    w.Write([]byte("削除しました"))
+    w.WriteHeader(http.StatusNoContent)
 })
 
 	router.Patch("/articles/{id}/pin", func(w http.ResponseWriter, r *http.Request) {
