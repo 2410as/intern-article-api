@@ -14,7 +14,7 @@ import (
 )
 
 func main () {
-	//.encファイルを確認
+	//.envファイルを確認
 	godotenv.Load()
 	url := os.Getenv("EXTERNAL_API_URL")
 	if url == "" {
@@ -76,7 +76,7 @@ func main () {
 			return
 		}
 		svc.CreateArticle(input.Title, input.Body)
-		w.WriteHeader(http.Status)
+		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte("自分の記事を保存しました"))
 	})
 
@@ -111,12 +111,10 @@ func main () {
 	fmt.Println("Server starting on :8080...")
 	http.ListenAndServe(":8080",router)
 
-}
-
-	router.Put("/artiles/{id}", func(w http.ResponseWriter, r *http.Request) {
+	router.Put("/articles/{id}", func(w http.ResponseWriter, r *http.Request) {
 		idStr := chi.URLParam(r, "id")
 		var id int
-		fmt.Ssacnf(idStr, "%d", &id)
+		fmt.Sscanf(idStr, "%d", &id)
 		var input struct {
             Title string `json:"title"`
             Body  string `json:"body"`
@@ -132,3 +130,6 @@ func main () {
 
         w.Write([]byte("更新しました"))
     })
+}
+
+	
